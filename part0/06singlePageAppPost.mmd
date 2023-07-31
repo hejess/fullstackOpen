@@ -5,5 +5,5 @@ sequenceDiagram
     activate server
     server-->>browser: 201 Created (New note successfully created)
     deactivate server
-    browser->>browser: Update 'notes' array with the retrieved data
+    browser->>browser: Update 'notes' array
     browser->>browser: Redraw notes on https://studies.cs.helsinki.fi/exampleapp/spa
