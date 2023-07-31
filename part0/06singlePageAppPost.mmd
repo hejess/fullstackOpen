@@ -1,0 +1,9 @@
+sequenceDiagram
+    participant browser
+    participant server
+    browser->>server: POST https://studies.cs.helsinki.fi/exampleapp/new_note_spa
+    activate server
+    server-->>browser: 201 Created (New note successfully created)
+    deactivate server
+    browser->>browser: Update 'notes' array with the retrieved data
+    browser->>browser: Redraw notes on https://studies.cs.helsinki.fi/exampleapp/spa
