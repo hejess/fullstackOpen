@@ -94,17 +94,19 @@ const App = () => {
     setNewFilterStr(event.target.value)
   }
 
-  const personsToShow =
-    newFilterStr === ''
-      ? persons
-      : persons.filter(person =>
-          person.name.toLowerCase().includes(newFilterStr.toLowerCase())
-        )
+  const personsToShow = newFilterStr === ''
+  ? persons
+  : persons.filter(person =>
+      person.name.split(/\s+/).some(namePart =>
+        namePart.toLowerCase().startsWith(newFilterStr.toLowerCase())
+      )
+  );
+
   return (
     <div>
       <h2>Phonebook</h2>
       <InputWithText
-        text={'find person name starts with'}
+        text={'Find person name starts with'}
         value={newFilterStr}
         handleChange={handleFilterChange}
       />
