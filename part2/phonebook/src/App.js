@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import personService from './services/persons'
+
 const Person = ({ person }) => (
   <tr>
     <td>{person.name}</td>
@@ -61,14 +62,13 @@ const App = () => {
   const [newFilterStr, setNewFilterStr] = useState('')
 
   const hook = () => {
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => setPersons(response.data))
+    personService.getAll()
+      .then(persons => setPersons(persons))
   }
   useEffect(hook, []) // By default, effects run after every completed render
 
   const addPerson = event => {
-    event.preventDefault()
+    event.preventDefault() // default action will cause the page to reload
     console.log(persons)
 
     if (persons.map(person => person.name).includes(newName)) {
@@ -78,11 +78,15 @@ const App = () => {
     const newPerson = {
       name: newName,
       number: newNum,
-      id: persons.length + 1
+      id: persons.length + 1,
     }
-    setPersons(persons.concat(newPerson))
-    setNewName('')
-    setNewNum('')
+    personService.create(
+      newPerson
+    ).then(newNote => {
+      setPersons(persons.concat(newNote))
+      setNewName('')
+      setNewNum('')
+    })
   }
   const handleNameChange = event => {
     setNewName(event.target.value)
@@ -94,13 +98,16 @@ const App = () => {
     setNewFilterStr(event.target.value)
   }
 
-  const personsToShow = newFilterStr === ''
-  ? persons
-  : persons.filter(person =>
-      person.name.split(/\s+/).some(namePart =>
-        namePart.toLowerCase().startsWith(newFilterStr.toLowerCase())
-      )
-  );
+  const personsToShow =
+    newFilterStr === ''
+      ? persons
+      : persons.filter(person =>
+          person.name
+            .split(/\s+/)
+            .some(namePart =>
+              namePart.toLowerCase().startsWith(newFilterStr.toLowerCase())
+            )
+        )
 
   return (
     <div>
