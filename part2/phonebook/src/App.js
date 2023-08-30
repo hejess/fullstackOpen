@@ -71,21 +71,37 @@ const App = () => {
 
   const addPerson = event => {
     event.preventDefault() // default action will cause the page to reload
-    if (persons.map(person => person.name).includes(newName)) {
-      alert(`${newName} is already in the phonebook`)
-      return
+    const person = persons.find(p => p.name === newName)
+    if (person) {
+      if (
+        window.confirm(
+          `${newName} is already in the phonebook, replace the number with a new one?`
+        )
+      ) {
+        const updatedPerson = {
+          ...person,
+          number: newNum
+        }
+        personService.update(person.id, updatedPerson).then(updatedPerson=>{
+          setPersons(persons.map(p => p.id!==person.id? p : updatedPerson))
+          setNewName('')
+          setNewNum('')
+        })
+      }
+    } else {
+      const newPerson = {
+        name: newName,
+        number: newNum,
+        id: persons.length + 1
+      }
+      personService.create(newPerson).then(newNote => {
+        setPersons(persons.concat(newNote))
+        setNewName('')
+        setNewNum('')
+      })
     }
-    const newPerson = {
-      name: newName,
-      number: newNum,
-      id: persons.length + 1
-    }
-    personService.create(newPerson).then(newNote => {
-      setPersons(persons.concat(newNote))
-      setNewName('')
-      setNewNum('')
-    })
   }
+
   const handleNameChange = event => {
     setNewName(event.target.value)
   }
