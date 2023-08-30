@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
 import personService from './services/persons'
 
-const Person = ({ person }) => (
+const Person = ({ person, removePerson }) => (
   <tr>
     <td>{person.name}</td>
     <td>{person.number}</td>
+    <td>
+      <button onClick={() => removePerson(person.id)}>delete</button>
+    </td>
   </tr>
 )
 
@@ -34,11 +37,11 @@ const PersonForm = ({
   </form>
 )
 
-const ContactsTable = ({ personsToShow }) => (
+const ContactsTable = ({ personsToShow, removePerson }) => (
   <table>
     <tbody>
       {personsToShow.map(person => (
-        <Person key={person.id} person={person} />
+        <Person key={person.id} person={person} removePerson={removePerson} />
       ))}
     </tbody>
   </table>
@@ -62,15 +65,12 @@ const App = () => {
   const [newFilterStr, setNewFilterStr] = useState('')
 
   const hook = () => {
-    personService.getAll()
-      .then(persons => setPersons(persons))
+    personService.getAll().then(persons => setPersons(persons))
   }
   useEffect(hook, []) // By default, effects run after every completed render
 
   const addPerson = event => {
     event.preventDefault() // default action will cause the page to reload
-    console.log(persons)
-
     if (persons.map(person => person.name).includes(newName)) {
       alert(`${newName} is already in the phonebook`)
       return
@@ -78,11 +78,9 @@ const App = () => {
     const newPerson = {
       name: newName,
       number: newNum,
-      id: persons.length + 1,
+      id: persons.length + 1
     }
-    personService.create(
-      newPerson
-    ).then(newNote => {
+    personService.create(newPerson).then(newNote => {
       setPersons(persons.concat(newNote))
       setNewName('')
       setNewNum('')
@@ -96,6 +94,19 @@ const App = () => {
   }
   const handleFilterChange = event => {
     setNewFilterStr(event.target.value)
+  }
+
+  const removePerson = id => {
+    const person = persons.find(p => p.id === id)
+    if (window.confirm(`Delete ${person.name}?`)) {
+      personService
+        .remove(id)
+        .then(response => setPersons(persons.filter(p => p.id !== id)))
+        .catch(error => {
+          alert(`${person.name} was deleted from server.`)
+          setPersons(persons.filter(p => p.id !== id))
+        })
+    }
   }
 
   const personsToShow =
@@ -126,7 +137,10 @@ const App = () => {
         handleNumChange={handleNumChange}
       />
       <h2>Numbers</h2>
-      <ContactsTable personsToShow={personsToShow} />
+      <ContactsTable
+        personsToShow={personsToShow}
+        removePerson={removePerson}
+      />
     </div>
   )
 }
