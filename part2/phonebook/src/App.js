@@ -1,69 +1,27 @@
 import { useState, useEffect } from 'react'
 import personService from './services/persons'
-
-const Person = ({ person, removePerson }) => (
-  <tr>
-    <td>{person.name}</td>
-    <td>{person.number}</td>
-    <td>
-      <button onClick={() => removePerson(person.id)}>delete</button>
-    </td>
-  </tr>
-)
-
-const PersonForm = ({
-  handleSubmit,
-  newName,
-  handleNameChange,
-  newNum,
-  handleNumChange
-}) => (
-  <form onSubmit={handleSubmit}>
-    <InputWithText
-      text={'name:'}
-      value={newName}
-      handleChange={handleNameChange}
-    />
-
-    <InputWithText
-      text={'number:'}
-      value={newNum}
-      handleChange={handleNumChange}
-    />
-
-    <div>
-      <button type='submit'>add</button>
-    </div>
-  </form>
-)
-
-const ContactsTable = ({ personsToShow, removePerson }) => (
-  <table>
-    <tbody>
-      {personsToShow.map(person => (
-        <Person key={person.id} person={person} removePerson={removePerson} />
-      ))}
-    </tbody>
-  </table>
-)
-
-const Input = ({ value, handleChange }) => (
-  <input value={value} onChange={handleChange} />
-)
-
-const InputWithText = ({ text, value, handleChange }) => (
-  <div>
-    {text}
-    <Input value={value} handleChange={handleChange} />
-  </div>
-)
+import ContactsTable from './components/ContactsTable'
+import PersonForm from './components/PersonForm'
+import Notification from './components/Notification'
+import InputWithText from './components/InputWithText'
 
 const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNum, setNewNum] = useState('')
+  const [notification, setNotification] = useState({
+    msg: null,
+    type: null
+  })
   const [newFilterStr, setNewFilterStr] = useState('')
-
+  const notify = msg => {
+    setNotification({ msg, type: 'notification' })
+    setTimeout(() => setNotification({ msg: null, type: null }), 3000)
+  }
+  const warn = msg => {
+    setNotification({ msg, type: 'error' })
+    setTimeout(() => setNotification({ msg: null, type: null }), 3000)
+  }
   const hook = () => {
     personService.getAll().then(persons => setPersons(persons))
   }
@@ -82,8 +40,9 @@ const App = () => {
           ...person,
           number: newNum
         }
-        personService.update(person.id, updatedPerson).then(updatedPerson=>{
-          setPersons(persons.map(p => p.id!==person.id? p : updatedPerson))
+        personService.update(person.id, updatedPerson).then(updatedPerson => {
+          setPersons(persons.map(p => (p.id !== person.id ? p : updatedPerson)))
+          notify(`Updated ${newName}`)
           setNewName('')
           setNewNum('')
         })
@@ -92,10 +51,11 @@ const App = () => {
       const newPerson = {
         name: newName,
         number: newNum,
-        id: persons.length + 1
+        id: new Date().getTime()
       }
-      personService.create(newPerson).then(newNote => {
-        setPersons(persons.concat(newNote))
+      personService.create(newPerson).then(newPerson => {
+        setPersons(persons.concat(newPerson))
+        notify(`Added ${newName}`)
         setNewName('')
         setNewNum('')
       })
@@ -119,7 +79,7 @@ const App = () => {
         .remove(id)
         .then(response => setPersons(persons.filter(p => p.id !== id)))
         .catch(error => {
-          alert(`${person.name} was deleted from server.`)
+          warn(`${person.name} was deleted from server.`)
           setPersons(persons.filter(p => p.id !== id))
         })
     }
@@ -139,6 +99,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification msg={notification.msg} type={notification.type} />
       <InputWithText
         text={'Find person name starts with'}
         value={newFilterStr}
