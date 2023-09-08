@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import countriesService from './services/countries'
 
 const baseURL = 'https://studies.cs.helsinki.fi/restcountries'
 
@@ -13,7 +13,9 @@ const SelectedCountry = ({ country }) => {
 
         <h3>languages:</h3>
         <ul>
-        {Object.values(country.languages).map(lang=><li>{lang}</li>)}
+          {Object.values(country.languages).map(lang => (
+            <li>{lang}</li>
+          ))}
         </ul>
         <img src={country.flags.png}></img>
       </div>
@@ -34,18 +36,17 @@ const CountriesToShow = ({ filtered }) => {
   )
 }
 const App = () => {
-  const [countries, setCountries] = useState([])
+  const [countries, setCountryNames] = useState([])
   // const [notification, setNotification] = useState('')
   const [newFilterStr, setNewFilterStr] = useState('')
   const [selectedCountry, setSelectedCountry] = useState(null)
 
   useEffect(() => {
-    axios
-      .get(`${baseURL}/api/all`)
-      .then(response => response.data.map(country => country.name.common))
-      .then(countries => {
-        setCountries(countries)
-        console.log(countries)
+    countriesService
+      .getAll().then(countries => countries.map(country => country.name.common))
+      .then(countryNames => {
+        setCountryNames(countryNames)
+        console.log(countryNames)
       })
   }, [])
 
@@ -65,13 +66,12 @@ const App = () => {
 
   useEffect(() => {
     if (filteredCountries.length === 1) {
-      axios
-        .get(`${baseURL}/api/name/${filteredCountries[0]}`)
-        .then(response => setSelectedCountry(response.data))
+      countriesService
+        .get(filteredCountries[0])
+        .then(country => setSelectedCountry(country))
     } else {
       setSelectedCountry(null)
     }
-
   }, [filteredCountries])
   return (
     <div>
