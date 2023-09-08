@@ -22,7 +22,7 @@ const SelectedCountry = ({ country }) => {
     )
   }
 }
-const CountriesToShow = ({ filtered }) => {
+const CountriesToShow = ({ filtered, setNewFilterStr }) => {
   if (filtered.length > 10 || filtered.length <= 1) {
     console.log(filtered.length)
     return null
@@ -30,7 +30,7 @@ const CountriesToShow = ({ filtered }) => {
   return (
     <div>
       {filtered.map(c => (
-        <p key={c}>{c}</p>
+        <p key={c}>{c} <button onClick={()=>{setNewFilterStr(c)}}>show</button></p>
       ))}
     </div>
   )
@@ -77,7 +77,7 @@ const App = () => {
     <div>
       find countries <input onChange={handleFilterChange} />
       <p>{notification}</p>
-      <CountriesToShow filtered={filteredCountries} />
+      <CountriesToShow filtered={filteredCountries} setNewFilterStr={setNewFilterStr} />
       <SelectedCountry country={selectedCountry} />
     </div>
   )
