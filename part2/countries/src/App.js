@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import countriesService from './services/countries'
+import weatherService from './services/weather'
 
 const baseURL = 'https://studies.cs.helsinki.fi/restcountries'
 
@@ -22,6 +23,7 @@ const SelectedCountry = ({ country }) => {
     )
   }
 }
+
 const CountriesToShow = ({ filtered, setNewFilterStr }) => {
   if (filtered.length > 10 || filtered.length <= 1) {
     console.log(filtered.length)
@@ -35,11 +37,24 @@ const CountriesToShow = ({ filtered, setNewFilterStr }) => {
     </div>
   )
 }
+
+const WeatherInfo = ({weather, selectedCountry}) => {
+  if (weather === null || selectedCountry === null) {
+    return null
+  }
+  return(
+  <div>
+    <h2>Weather in {selectedCountry.capital}</h2>
+    <p>temperature {weather.temperature} Celcius </p>
+    <p>wind {weather.windspeed} m/s</p>
+  </div>)
+}
 const App = () => {
   const [countries, setCountryNames] = useState([])
   // const [notification, setNotification] = useState('')
   const [newFilterStr, setNewFilterStr] = useState('')
   const [selectedCountry, setSelectedCountry] = useState(null)
+  const [weather, setWeather] = useState(null)
 
   useEffect(() => {
     countriesService
@@ -72,13 +87,25 @@ const App = () => {
     } else {
       setSelectedCountry(null)
     }
-  }, [filteredCountries])
+  }, [filteredCountries.length])
+
+  useEffect(() => {
+    console.log(`selected ${selectedCountry}`)
+    if (selectedCountry) {
+      const [lat, lng] = selectedCountry.capitalInfo.latlng
+      weatherService.get(lat, lng).then(
+        weatherData => {setWeather(weatherData.current_weather); console.log(weather.temperature)}
+
+      )
+    }
+  }, [selectedCountry])
   return (
     <div>
       find countries <input onChange={handleFilterChange} />
       <p>{notification}</p>
       <CountriesToShow filtered={filteredCountries} setNewFilterStr={setNewFilterStr} />
       <SelectedCountry country={selectedCountry} />
+      <WeatherInfo weather={weather} selectedCountry={selectedCountry} />
     </div>
   )
 }
