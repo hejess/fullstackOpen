@@ -24,30 +24,42 @@ const SelectedCountry = ({ country }) => {
   }
 }
 
-const CountriesToShow = ({ filtered, setNewFilterStr }) => {
+const CountriesToShow = ({ filtered, setNewFilterStr, setSelectedCountry }) => {
   if (filtered.length > 10 || filtered.length <= 1) {
-    console.log(filtered.length)
+    console.log(`filtered length: ${filtered.length}`)
     return null
   }
   return (
     <div>
       {filtered.map(c => (
-        <p key={c}>{c} <button onClick={()=>{setNewFilterStr(c)}}>show</button></p>
+        <p key={c}>
+          {`${c} `}
+          <button
+            onClick={() => {
+              countriesService
+                .get(c)
+                .then(country => setSelectedCountry(country))
+            }}
+          >
+            show
+          </button>
+        </p>
       ))}
     </div>
   )
 }
 
-const WeatherInfo = ({weather, selectedCountry}) => {
+const WeatherInfo = ({ weather, selectedCountry }) => {
   if (weather === null || selectedCountry === null) {
     return null
   }
-  return(
-  <div>
-    <h2>Weather in {selectedCountry.capital}</h2>
-    <p>temperature {weather.temperature} Celcius </p>
-    <p>wind {weather.windspeed} m/s</p>
-  </div>)
+  return (
+    <div>
+      <h2>Weather in {selectedCountry.capital}</h2>
+      <p>temperature {weather.temperature} Celcius </p>
+      <p>wind {weather.windspeed} m/s</p>
+    </div>
+  )
 }
 const App = () => {
   const [countries, setCountryNames] = useState([])
@@ -58,7 +70,8 @@ const App = () => {
 
   useEffect(() => {
     countriesService
-      .getAll().then(countries => countries.map(country => country.name.common))
+      .getAll()
+      .then(countries => countries.map(country => country.name.common))
       .then(countryNames => {
         setCountryNames(countryNames)
         console.log(countryNames)
@@ -93,17 +106,21 @@ const App = () => {
     console.log(`selected ${selectedCountry}`)
     if (selectedCountry) {
       const [lat, lng] = selectedCountry.capitalInfo.latlng
-      weatherService.get(lat, lng).then(
-        weatherData => {setWeather(weatherData.current_weather); console.log(weather.temperature)}
-
-      )
+      weatherService.get(lat, lng).then(weatherData => {
+        setWeather(weatherData.current_weather)
+        console.log(weather.temperature)
+      })
     }
   }, [selectedCountry])
   return (
     <div>
       find countries <input onChange={handleFilterChange} />
       <p>{notification}</p>
-      <CountriesToShow filtered={filteredCountries} setNewFilterStr={setNewFilterStr} />
+      <CountriesToShow
+        filtered={filteredCountries}
+        setNewFilterStr={setNewFilterStr}
+        setSelectedCountry={setSelectedCountry}
+      />
       <SelectedCountry country={selectedCountry} />
       <WeatherInfo weather={weather} selectedCountry={selectedCountry} />
     </div>
